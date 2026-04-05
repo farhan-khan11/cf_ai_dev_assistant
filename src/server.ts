@@ -1,13 +1,14 @@
 import { createWorkersAI } from "workers-ai-provider";
 import { callable, routeAgentRequest, type Schedule } from "agents";
-import { getSchedulePrompt, scheduleSchema } from "agents/schedule";
+// import { getSchedulePrompt, scheduleSchema } from "agents/schedule";
+import { getSchedulePrompt } from "agents/schedule";
 import { AIChatAgent, type OnChatMessageOptions } from "@cloudflare/ai-chat";
 import {
   convertToModelMessages,
   pruneMessages,
   stepCountIs,
   streamText,
-  tool,
+  // tool,
   type ModelMessage
 } from "ai";
 import { z } from "zod";
@@ -70,14 +71,30 @@ export class ChatAgent extends AIChatAgent<Env> {
     const workersai = createWorkersAI({ binding: this.env.AI });
 
     const result = streamText({
-      model: workersai("@cf/moonshotai/kimi-k2.5", {
+      // model: workersai("@cf/moonshotai/kimi-k2.5", { // this is the one we got when cloned the repo
+      // model: workersai("@cf/meta/llama-3.1-8b-instruct", { // this is the one i used in local setup
+      model: workersai("@cf/meta/llama-3.3-70b-instruct-fp8-fast", { // this is the one i am using in prod level
         sessionAffinity: this.sessionAffinity
       }),
-      system: `You are a helpful assistant that can understand images. You can check the weather, get the user's timezone, run calculations, and schedule tasks. When users share images, describe what you see and answer questions about them.
+      //       system: `You are a helpful assistant that can understand images. You can check the weather, get the user's timezone, run calculations, and schedule tasks. When users share images, describe what you see and answer questions about them.
+
+      // ${getSchedulePrompt({ date: new Date() })}
+
+      system: `You are a helpful AI assistant for developers. Answer questions directly using your knowledge. Only use tools when explicitly needed (weather, calculations, scheduling).
+
+You help with:
+- Explaining programming concepts clearly
+- Debugging code and finding errors
+- Writing and reviewing code
+- Answering questions about web development, algorithms, and system design
+- Giving project advice and best practices
+
+Be concise, clear, and always provide code examples when relevant.
 
 ${getSchedulePrompt({ date: new Date() })}
 
 If the user asks to schedule a task, use the schedule tool to schedule the task.`,
+
       // Prune old tool calls to save tokens on long conversations
       messages: pruneMessages({
         messages: inlineDataUrls(await convertToModelMessages(this.messages)),
@@ -88,116 +105,117 @@ If the user asks to schedule a task, use the schedule tool to schedule the task.
         ...mcpTools,
 
         // Server-side tool: runs automatically on the server
-        getWeather: tool({
-          description: "Get the current weather for a city",
-          inputSchema: z.object({
-            city: z.string().describe("City name")
-          }),
-          execute: async ({ city }) => {
-            // Replace with a real weather API in production
-            const conditions = ["sunny", "cloudy", "rainy", "snowy"];
-            const temp = Math.floor(Math.random() * 30) + 5;
-            return {
-              city,
-              temperature: temp,
-              condition:
-                conditions[Math.floor(Math.random() * conditions.length)],
-              unit: "celsius"
-            };
-          }
-        }),
+        // getWeather: tool({
+        //   description: "Get the current weather for a city",
+        //   inputSchema: z.object({
+        //     city: z.string().describe("City name")
+        //   }),
+        //   execute: async ({ city }) => {
+        //     // Replace with a real weather API in production
+        //     const conditions = ["sunny", "cloudy", "rainy", "snowy"];
+        //     const temp = Math.floor(Math.random() * 30) + 5;
+        //     return {
+        //       city,
+        //       temperature: temp,
+        //       condition:
+        //         conditions[Math.floor(Math.random() * conditions.length)],
+        //       unit: "celsius"
+        //     };
+        //   }
+        // }),
 
         // Client-side tool: no execute function — the browser handles it
-        getUserTimezone: tool({
-          description:
-            "Get the user's timezone from their browser. Use this when you need to know the user's local time.",
-          inputSchema: z.object({})
-        }),
+        // getUserTimezone: tool({
+        //   description:
+        //     "Get the user's timezone from their browser. Use this when you need to know the user's local time.",
+        //   inputSchema: z.object({})
+        // }),
 
         // Approval tool: requires user confirmation before executing
-        calculate: tool({
-          description:
-            "Perform a math calculation with two numbers. Requires user approval for large numbers.",
-          inputSchema: z.object({
-            a: z.number().describe("First number"),
-            b: z.number().describe("Second number"),
-            operator: z
-              .enum(["+", "-", "*", "/", "%"])
-              .describe("Arithmetic operator")
-          }),
-          needsApproval: async ({ a, b }) =>
-            Math.abs(a) > 1000 || Math.abs(b) > 1000,
-          execute: async ({ a, b, operator }) => {
-            const ops: Record<string, (x: number, y: number) => number> = {
-              "+": (x, y) => x + y,
-              "-": (x, y) => x - y,
-              "*": (x, y) => x * y,
-              "/": (x, y) => x / y,
-              "%": (x, y) => x % y
-            };
-            if (operator === "/" && b === 0) {
-              return { error: "Division by zero" };
-            }
-            return {
-              expression: `${a} ${operator} ${b}`,
-              result: ops[operator](a, b)
-            };
-          }
-        }),
+        // calculate: tool({
+        //   description:
+        //     "Perform a math calculation with two numbers. Requires user approval for large numbers.",
+        //   inputSchema: z.object({
+        //     a: z.number().describe("First number"),
+        //     b: z.number().describe("Second number"),
+        //     operator: z
+        //       .enum(["+", "-", "*", "/", "%"])
+        //       .describe("Arithmetic operator")
+        //   }),
+        //   needsApproval: async ({ a, b }) =>
+        //     Math.abs(a) > 1000 || Math.abs(b) > 1000,
+        //   execute: async ({ a, b, operator }) => {
+        //     const ops: Record<string, (x: number, y: number) => number> = {
+        //       "+": (x, y) => x + y,
+        //       "-": (x, y) => x - y,
+        //       "*": (x, y) => x * y,
+        //       "/": (x, y) => x / y,
+        //       "%": (x, y) => x % y
+        //     };
+        //     if (operator === "/" && b === 0) {
+        //       return { error: "Division by zero" };
+        //     }
+        //     return {
+        //       expression: `${a} ${operator} ${b}`,
+        //       result: ops[operator](a, b)
+        //     };
+        //   }
+        // }),
 
-        scheduleTask: tool({
-          description:
-            "Schedule a task to be executed at a later time. Use this when the user asks to be reminded or wants something done later.",
-          inputSchema: scheduleSchema,
-          execute: async ({ when, description }) => {
-            if (when.type === "no-schedule") {
-              return "Not a valid schedule input";
-            }
-            const input =
-              when.type === "scheduled"
-                ? when.date
-                : when.type === "delayed"
-                  ? when.delayInSeconds
-                  : when.type === "cron"
-                    ? when.cron
-                    : null;
-            if (!input) return "Invalid schedule type";
-            try {
-              this.schedule(input, "executeTask", description, {
-                idempotent: true
-              });
-              return `Task scheduled: "${description}" (${when.type}: ${input})`;
-            } catch (error) {
-              return `Error scheduling task: ${error}`;
-            }
-          }
-        }),
+        // scheduleTask: tool({
+        //   description:
+        //     "Schedule a task to be executed at a later time. Use this when the user asks to be reminded or wants something done later.",
+        //   inputSchema: scheduleSchema,
+        //   execute: async ({ when, description }) => {
+        //     if (when.type === "no-schedule") {
+        //       return "Not a valid schedule input";
+        //     }
+        //     const input =
+        //       when.type === "scheduled"
+        //         ? when.date
+        //         : when.type === "delayed"
+        //           ? when.delayInSeconds
+        //           : when.type === "cron"
+        //             ? when.cron
+        //             : null;
+        //     if (!input) return "Invalid schedule type";
+        //     try {
+        //       this.schedule(input, "executeTask", description, {
+        //         idempotent: true
+        //       });
+        //       return `Task scheduled: "${description}" (${when.type}: ${input})`;
+        //     } catch (error) {
+        //       return `Error scheduling task: ${error}`;
+        //     }
+        //   }
+        // }),
 
-        getScheduledTasks: tool({
-          description: "List all tasks that have been scheduled",
-          inputSchema: z.object({}),
-          execute: async () => {
-            const tasks = this.getSchedules();
-            return tasks.length > 0 ? tasks : "No scheduled tasks found.";
-          }
-        }),
+        // getScheduledTasks: tool({
+        //   description: "List all tasks that have been scheduled",
+        //   inputSchema: z.object({}),
+        //   execute: async () => {
+        //     const tasks = this.getSchedules();
+        //     return tasks.length > 0 ? tasks : "No scheduled tasks found.";
+        //   }
+        // }),
 
-        cancelScheduledTask: tool({
-          description: "Cancel a scheduled task by its ID",
-          inputSchema: z.object({
-            taskId: z.string().describe("The ID of the task to cancel")
-          }),
-          execute: async ({ taskId }) => {
-            try {
-              this.cancelSchedule(taskId);
-              return `Task ${taskId} cancelled.`;
-            } catch (error) {
-              return `Error cancelling task: ${error}`;
-            }
-          }
-        })
+        // cancelScheduledTask: tool({
+        //   description: "Cancel a scheduled task by its ID",
+        //   inputSchema: z.object({
+        //     taskId: z.string().describe("The ID of the task to cancel")
+        //   }),
+        //   execute: async ({ taskId }) => {
+        //     try {
+        //       this.cancelSchedule(taskId);
+        //       return `Task ${taskId} cancelled.`;
+        //     } catch (error) {
+        //       return `Error cancelling task: ${error}`;
+        //     }
+        //   }
+        // })
       },
       stopWhen: stepCountIs(5),
+      // stopWhen: stepCountIs(1),
       abortSignal: options?.abortSignal
     });
 

@@ -449,7 +449,8 @@ function Chat() {
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h1 className="text-lg font-semibold text-kumo-default">
-              <span className="mr-2">⛅</span>Agent Starter
+              {/* <span className="mr-2">⛅</span>Agent Starter */}
+              <span className="mr-2">🤖</span>Dev Assistant
             </h1>
             <Badge variant="secondary">
               <ChatCircleDotsIcon size={12} weight="bold" className="mr-1" />
@@ -663,10 +664,14 @@ function Chat() {
               contents={
                 <div className="flex flex-wrap justify-center gap-2">
                   {[
-                    "What's the weather in Paris?",
-                    "What timezone am I in?",
-                    "Calculate 5000 * 3",
-                    "Remind me in 5 minutes to take a break"
+                    // "What's the weather in Paris?",
+                    // "What timezone am I in?",
+                    // "Calculate 5000 * 3",
+                    // "Remind me in 5 minutes to take a break"
+                    "Explain how JWT authentication works",
+                    "What is the difference between SQL and NoSQL?",
+                    "How do I reverse a string in JavaScript?",
+                    "What is a REST API?"
                   ].map((prompt) => (
                     <Button
                       key={prompt}
