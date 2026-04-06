@@ -2,6 +2,8 @@
 
 A developer-focused AI chat assistant built on Cloudflare's Agent platform.
 
+## Live Demo : https://cf-ai-dev-assistant.farhankhan94416.workers.dev/
+
 ## What it does
 
 An AI-powered chat application where developers can ask coding questions, get explanations, debug code, and learn programming concepts. The agent remembers the full conversation history so follow-up questions work naturally — no need to repeat context.
