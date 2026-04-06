@@ -1,4 +1,4 @@
-# cf-ai-dev-assistant
+# cf_ai_dev_assistant
 
 A developer-focused AI chat assistant built on Cloudflare's Agent platform.
 
@@ -24,8 +24,8 @@ An AI-powered chat application where developers can ask coding questions, get ex
 
 ## How to run locally
 ```bash
-git clone https://github.com/farhan-khan11/cf-ai-dev-assistant.git
-cd cf-ai-dev-assistant
+git clone https://github.com/farhan-khan11/cf_ai_dev_assistant.git
+cd cf_ai_dev_assistant
 npm install
 npx wrangler login
 npm run dev
@@ -44,6 +44,11 @@ npm run deploy
 - Full conversation memory across messages
 - Developer-focused system prompt
 - Built on Cloudflare's global edge network
+
+## Build Documentation
+
+A complete step-by-step build guide is available here:
+[View Build Steps PDF](./build_steps.pdf)
 
 ## Author
 
